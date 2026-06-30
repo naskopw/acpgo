@@ -1,0 +1,22 @@
+version: "2"
+run:
+  timeout: 3m
+linters:
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - misspell
+    - revive
+    - bodyclose
+    - noctx
+  settings:
+    revive:
+      rules:
+        - name: exported
+          severity: warning
+issues:
+  exclude-dirs:
+    - .git
