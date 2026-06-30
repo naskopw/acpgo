@@ -39,10 +39,3 @@ type ContentChunk struct {
 	Meta      map[string]any `json:"_meta,omitempty"`
 }
 
-// Diff represents a file modification shown as a diff.
-type Diff struct {
-	Path    string         `json:"path"`
-	OldText string         `json:"oldText,omitempty"`
-	NewText string         `json:"newText"`
-	Meta    map[string]any `json:"_meta,omitempty"`
-}

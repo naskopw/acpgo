@@ -121,3 +121,20 @@ func TestRoleConstants(t *testing.T) {
 	require.Equal(t, "assistant", acp.RoleAssistant)
 	require.Equal(t, "user", acp.RoleUser)
 }
+
+func TestToolCallContentDiffJSON(t *testing.T) {
+	c := acp.ToolCallContent{
+		Type:        "diff",
+		DiffPath:    "/foo/bar.go",
+		DiffNewText: "package main",
+	}
+	data, err := json.Marshal(c)
+	require.NoError(t, err)
+	var got acp.ToolCallContent
+	require.NoError(t, json.Unmarshal(data, &got))
+	require.Equal(t, "diff", got.Type)
+	require.Equal(t, "/foo/bar.go", got.DiffPath)
+	require.Equal(t, "package main", got.DiffNewText)
+	require.Contains(t, string(data), `"path"`)
+	require.NotContains(t, string(data), `"diff":`)
+}
