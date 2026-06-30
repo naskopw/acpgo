@@ -1,4 +1,4 @@
-module github.com/naskopw/acp
+module github.com/naskopw/acpgo
 
 go 1.22
 

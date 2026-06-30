@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/naskopw/acp"
+	"github.com/naskopw/acpgo"
 	"github.com/stretchr/testify/require"
 )
 
