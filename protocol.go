@@ -82,8 +82,8 @@ const (
 const (
 	ToolStatusPending     = "pending"
 	ToolStatusInProgress  = "in_progress"
-	ToolStatusCompleted   = "tool_call_completed"
-	ToolStatusFailed      = "tool_call_failed"
+	ToolStatusCompleted   = "completed"
+	ToolStatusFailed      = "failed"
 )
 
 // ToolKind values.
