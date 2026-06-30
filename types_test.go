@@ -100,3 +100,24 @@ func TestErrorSentinels(t *testing.T) {
 	require.NotNil(t, acp.ErrProtocolMismatch, "ErrProtocolMismatch is nil")
 	require.NotNil(t, acp.ErrRequestCancelled, "ErrRequestCancelled is nil")
 }
+
+func TestPermissionOptionKindConstants(t *testing.T) {
+	vals := []string{acp.PermOptionAllowOnce, acp.PermOptionAllowAlways, acp.PermOptionRejectOnce, acp.PermOptionRejectAlways}
+	for _, v := range vals {
+		require.NotEqual(t, "", v)
+	}
+}
+
+func TestPlanConstants(t *testing.T) {
+	require.Equal(t, "high", acp.PlanPriorityHigh)
+	require.Equal(t, "medium", acp.PlanPriorityMedium)
+	require.Equal(t, "low", acp.PlanPriorityLow)
+	require.Equal(t, "pending", acp.PlanStatusPending)
+	require.Equal(t, "in_progress", acp.PlanStatusInProgress)
+	require.Equal(t, "completed", acp.PlanStatusCompleted)
+}
+
+func TestRoleConstants(t *testing.T) {
+	require.Equal(t, "assistant", acp.RoleAssistant)
+	require.Equal(t, "user", acp.RoleUser)
+}

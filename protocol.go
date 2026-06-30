@@ -133,3 +133,31 @@ const (
 	ErrCodeAuthRequired       = -32000
 	ErrCodeResourceNotFound   = -32002
 )
+
+// PermissionOptionKind values for PermissionOption.kind.
+const (
+	PermOptionAllowOnce     = "allow_once"
+	PermOptionAllowAlways   = "allow_always"
+	PermOptionRejectOnce    = "reject_once"
+	PermOptionRejectAlways  = "reject_always"
+)
+
+// PlanEntryPriority values.
+const (
+	PlanPriorityHigh   = "high"
+	PlanPriorityMedium = "medium"
+	PlanPriorityLow    = "low"
+)
+
+// PlanEntryStatus values.
+const (
+	PlanStatusPending    = "pending"
+	PlanStatusInProgress = "in_progress"
+	PlanStatusCompleted  = "completed"
+)
+
+// Role values for Annotations.audience.
+const (
+	RoleAssistant = "assistant"
+	RoleUser      = "user"
+)
