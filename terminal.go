@@ -46,6 +46,7 @@ type ReleaseTerminalRequest struct {
 	Meta       map[string]any `json:"_meta,omitempty"`
 }
 
+// ReleaseTerminalResponse is the result of releasing a terminal.
 type ReleaseTerminalResponse struct {
 	Meta map[string]any `json:"_meta,omitempty"`
 }
@@ -71,6 +72,7 @@ type KillTerminalRequest struct {
 	Meta       map[string]any `json:"_meta,omitempty"`
 }
 
+// KillTerminalResponse is the result of killing a terminal command.
 type KillTerminalResponse struct {
 	Meta map[string]any `json:"_meta,omitempty"`
 }

@@ -37,6 +37,7 @@ type LogoutRequest struct {
 	Meta map[string]any `json:"_meta,omitempty"`
 }
 
+// LogoutResponse is the result of a successful logout.
 type LogoutResponse struct {
 	Meta map[string]any `json:"_meta,omitempty"`
 }
@@ -93,6 +94,7 @@ type DeleteSessionRequest struct {
 	Meta      map[string]any `json:"_meta,omitempty"`
 }
 
+// DeleteSessionResponse is the result of deleting a session.
 type DeleteSessionResponse struct {
 	Meta map[string]any `json:"_meta,omitempty"`
 }
@@ -119,6 +121,7 @@ type CloseSessionRequest struct {
 	Meta      map[string]any `json:"_meta,omitempty"`
 }
 
+// CloseSessionResponse is the result of closing a session.
 type CloseSessionResponse struct {
 	Meta map[string]any `json:"_meta,omitempty"`
 }
@@ -151,6 +154,7 @@ type SetModeRequest struct {
 	Meta      map[string]any `json:"_meta,omitempty"`
 }
 
+// SetSessionModeResponse is the result of setting the session mode.
 type SetSessionModeResponse struct {
 	Meta map[string]any `json:"_meta,omitempty"`
 }
@@ -194,6 +198,7 @@ type WriteTextFileRequest struct {
 	Meta      map[string]any `json:"_meta,omitempty"`
 }
 
+// WriteTextFileResponse is the result of writing a text file.
 type WriteTextFileResponse struct {
 	Meta map[string]any `json:"_meta,omitempty"`
 }
@@ -299,28 +304,33 @@ type SlashCommand struct {
 	Meta        map[string]any         `json:"_meta,omitempty"`
 }
 
+// AvailableCommandInput describes the input format for a slash command.
 type AvailableCommandInput struct {
 	Unstructured *UnstructuredCommandInput `json:"unstructured,omitempty"`
 	Meta         map[string]any            `json:"_meta,omitempty"`
 }
 
+// UnstructuredCommandInput describes an unstructured text input for a command.
 type UnstructuredCommandInput struct {
 	Hint string         `json:"hint,omitempty"`
 	Meta map[string]any `json:"_meta,omitempty"`
 }
 
+// ExtRequest is a generic extension method request.
 type ExtRequest struct {
 	Method string          `json:"method"`
 	Params json.RawMessage `json:"params,omitempty"`
 	Meta   map[string]any  `json:"_meta,omitempty"`
 }
 
+// ExtResponse is a generic extension method response.
 type ExtResponse struct {
 	Result json.RawMessage `json:"result,omitempty"`
 	Error  *RPCError       `json:"error,omitempty"`
 	Meta   map[string]any  `json:"_meta,omitempty"`
 }
 
+// ExtNotification is a generic extension method notification.
 type ExtNotification struct {
 	Method string          `json:"method"`
 	Params json.RawMessage `json:"params,omitempty"`
