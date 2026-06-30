@@ -1,5 +1,7 @@
 package acp
 
+import "encoding/json"
+
 // ---- Client → Agent Requests ----
 
 // InitializeRequest starts the handshake.
@@ -26,9 +28,16 @@ type AuthenticateRequest struct {
 }
 
 // AuthenticateResponse is the result of authentication.
+type AuthenticateResponse struct {
+	Meta map[string]any `json:"_meta,omitempty"`
+}
 
 // LogoutRequest ends the authenticated session.
 type LogoutRequest struct {
+	Meta map[string]any `json:"_meta,omitempty"`
+}
+
+type LogoutResponse struct {
 	Meta map[string]any `json:"_meta,omitempty"`
 }
 
@@ -84,6 +93,10 @@ type DeleteSessionRequest struct {
 	Meta      map[string]any `json:"_meta,omitempty"`
 }
 
+type DeleteSessionResponse struct {
+	Meta map[string]any `json:"_meta,omitempty"`
+}
+
 // ResumeSessionRequest resumes an existing session.
 type ResumeSessionRequest struct {
 	SessionID            string         `json:"sessionId"`
@@ -104,6 +117,10 @@ type ResumeSessionResponse struct {
 type CloseSessionRequest struct {
 	SessionID string         `json:"sessionId"`
 	Meta      map[string]any `json:"_meta,omitempty"`
+}
+
+type CloseSessionResponse struct {
+	Meta map[string]any `json:"_meta,omitempty"`
 }
 
 // PromptRequest contains parameters for a prompt request.
@@ -132,6 +149,10 @@ type SetModeRequest struct {
 	SessionID string         `json:"sessionId"`
 	ModeID    string         `json:"modeId"`
 	Meta      map[string]any `json:"_meta,omitempty"`
+}
+
+type SetSessionModeResponse struct {
+	Meta map[string]any `json:"_meta,omitempty"`
 }
 
 // SetConfigOptionRequest sets a config option value.
@@ -171,6 +192,10 @@ type WriteTextFileRequest struct {
 	Path      string         `json:"path"`
 	Content   string         `json:"content"`
 	Meta      map[string]any `json:"_meta,omitempty"`
+}
+
+type WriteTextFileResponse struct {
+	Meta map[string]any `json:"_meta,omitempty"`
 }
 
 // RequestPermissionRequest asks for user permission.
@@ -268,9 +293,38 @@ type SessionInfo struct {
 
 // SlashCommand describes a registered slash command.
 type SlashCommand struct {
-	Name        string         `json:"name"`
-	Description string         `json:"description,omitempty"`
-	Meta        map[string]any `json:"_meta,omitempty"`
+	Name        string                 `json:"name"`
+	Description string                 `json:"description,omitempty"`
+	Input       *AvailableCommandInput `json:"input,omitempty"`
+	Meta        map[string]any         `json:"_meta,omitempty"`
+}
+
+type AvailableCommandInput struct {
+	Unstructured *UnstructuredCommandInput `json:"unstructured,omitempty"`
+	Meta         map[string]any            `json:"_meta,omitempty"`
+}
+
+type UnstructuredCommandInput struct {
+	Hint string         `json:"hint,omitempty"`
+	Meta map[string]any `json:"_meta,omitempty"`
+}
+
+type ExtRequest struct {
+	Method string          `json:"method"`
+	Params json.RawMessage `json:"params,omitempty"`
+	Meta   map[string]any  `json:"_meta,omitempty"`
+}
+
+type ExtResponse struct {
+	Result json.RawMessage `json:"result,omitempty"`
+	Error  *RPCError       `json:"error,omitempty"`
+	Meta   map[string]any  `json:"_meta,omitempty"`
+}
+
+type ExtNotification struct {
+	Method string          `json:"method"`
+	Params json.RawMessage `json:"params,omitempty"`
+	Meta   map[string]any  `json:"_meta,omitempty"`
 }
 
 // SessionModeState describes the available and current session modes.

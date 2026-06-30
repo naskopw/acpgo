@@ -129,3 +129,46 @@ func TestContentPromptRequestJSON(t *testing.T) {
 	require.Equal(t, "ses-1", got.SessionID)
 	require.Len(t, got.Prompt, 1)
 }
+
+func TestWriteTextFileResponseJSON(t *testing.T) {
+	p := acp.WriteTextFileResponse{}
+	data, err := json.Marshal(p)
+	require.NoError(t, err)
+	var got acp.WriteTextFileResponse
+	require.NoError(t, json.Unmarshal(data, &got))
+}
+
+func TestLogoutResponseJSON(t *testing.T) {
+	p := acp.LogoutResponse{}
+	data, err := json.Marshal(p)
+	require.NoError(t, err)
+	var got acp.LogoutResponse
+	require.NoError(t, json.Unmarshal(data, &got))
+}
+
+func TestSlashCommandWithInputJSON(t *testing.T) {
+	p := acp.SlashCommand{
+		Name:        "think",
+		Description: "Think about a problem",
+		Input: &acp.AvailableCommandInput{
+			Unstructured: &acp.UnstructuredCommandInput{Hint: "What should I think about?"},
+		},
+	}
+	data, err := json.Marshal(p)
+	require.NoError(t, err)
+	var got acp.SlashCommand
+	require.NoError(t, json.Unmarshal(data, &got))
+	require.Equal(t, "think", got.Name)
+	require.NotNil(t, got.Input)
+	require.NotNil(t, got.Input.Unstructured)
+	require.Equal(t, "What should I think about?", got.Input.Unstructured.Hint)
+}
+
+func TestExtRequestJSON(t *testing.T) {
+	p := acp.ExtRequest{Method: "custom/do_thing", Params: json.RawMessage(`{"key":"val"}`)}
+	data, err := json.Marshal(p)
+	require.NoError(t, err)
+	var got acp.ExtRequest
+	require.NoError(t, json.Unmarshal(data, &got))
+	require.Equal(t, "custom/do_thing", got.Method)
+}

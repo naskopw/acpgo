@@ -46,6 +46,10 @@ type ReleaseTerminalRequest struct {
 	Meta       map[string]any `json:"_meta,omitempty"`
 }
 
+type ReleaseTerminalResponse struct {
+	Meta map[string]any `json:"_meta,omitempty"`
+}
+
 // WaitForTerminalExitRequest waits for a terminal command to exit.
 type WaitForTerminalExitRequest struct {
 	SessionID  string         `json:"sessionId"`
@@ -65,4 +69,8 @@ type KillTerminalRequest struct {
 	SessionID  string         `json:"sessionId"`
 	TerminalID string         `json:"terminalId"`
 	Meta       map[string]any `json:"_meta,omitempty"`
+}
+
+type KillTerminalResponse struct {
+	Meta map[string]any `json:"_meta,omitempty"`
 }

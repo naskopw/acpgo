@@ -72,6 +72,8 @@ type Implementation struct {
 type AuthMethod struct {
 	Type        string         `json:"type"`
 	ID          string         `json:"id"`
+	Name        string         `json:"name,omitempty"`
+	Description string         `json:"description,omitempty"`
 	Meta        map[string]any `json:"_meta,omitempty"`
 }
 
