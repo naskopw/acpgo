@@ -15,7 +15,9 @@ ACP standardizes how editors and agents exchange messages over JSON-RPC 2.0. It 
 
 ## What This Library Provides
 
-A complete set of Go types and utilities for building both **ACP clients** (editor/consumer side) and **ACP agents** (harness/server side):
+A complete set of Go types and utilities for building **ACP clients** (editor/consumer side) and implementing **ACP servers** (the harness/agent side of the protocol). This library provides the shared protocol types — actual agent runtime logic lives in the harness layer.
+
+This library is harness-agnostic by design. For the harness server implementation, see the harnessd package.
 
 | Area | Description |
 |---|---|
