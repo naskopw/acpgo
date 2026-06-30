@@ -28,11 +28,13 @@ type ToolCallUpdate struct {
 
 // ToolCallContent is content produced by a tool call (content, diff, or terminal).
 type ToolCallContent struct {
-	Type       string         `json:"type"`
-	Content    *ContentBlock  `json:"content,omitempty"`
-	Diff       *Diff          `json:"diff,omitempty"`
-	TerminalID string         `json:"terminalId,omitempty"`
-	Meta       map[string]any `json:"_meta,omitempty"`
+	Type        string         `json:"type"`
+	Content     *ContentBlock  `json:"content,omitempty"`
+	DiffPath    string         `json:"path,omitempty"`
+	DiffOldText string         `json:"oldText,omitempty"`
+	DiffNewText string         `json:"newText,omitempty"`
+	TerminalID  string         `json:"terminalId,omitempty"`
+	Meta        map[string]any `json:"_meta,omitempty"`
 }
 
 // ToolCallLocation is a file location accessed by a tool.
