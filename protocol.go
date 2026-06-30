@@ -130,6 +130,6 @@ const (
 	ErrCodeInvalidParams   = -32602
 	ErrCodeInternal        = -32603
 	ErrCodeCancelled       = -32800
-	ErrCodeAuthRequired    = -32001
-	ErrCodeServer          = -32000
+	ErrCodeAuthRequired       = -32000
+	ErrCodeResourceNotFound   = -32002
 )

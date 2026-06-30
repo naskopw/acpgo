@@ -98,5 +98,6 @@ func TestErrorCodeConstants(t *testing.T) {
 	require.True(t, acp.ErrCodeMethodNotFound < 0, "ErrCodeMethodNotFound should be negative")
 	require.True(t, acp.ErrCodeInvalidParams < 0, "ErrCodeInvalidParams should be negative")
 	require.True(t, acp.ErrCodeInternal < 0, "ErrCodeInternal should be negative")
-	require.True(t, acp.ErrCodeServer < 0, "ErrCodeServer should be negative")
+	require.True(t, acp.ErrCodeResourceNotFound < 0, "ErrCodeResourceNotFound should be negative")
+	require.True(t, acp.ErrCodeAuthRequired < 0, "ErrCodeAuthRequired should be negative")
 }
