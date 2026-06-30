@@ -275,9 +275,9 @@ type SlashCommand struct {
 
 // SessionModeState describes the available and current session modes.
 type SessionModeState struct {
-	Available []SessionMode `json:"available"`
-	CurrentID string        `json:"currentId,omitempty"`
-	Meta      map[string]any `json:"_meta,omitempty"`
+	AvailableModes []SessionMode `json:"availableModes"`
+	CurrentModeID  string        `json:"currentModeId,omitempty"`
+	Meta           map[string]any `json:"_meta,omitempty"`
 }
 
 // SessionMode describes a single session mode.
