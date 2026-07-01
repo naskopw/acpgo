@@ -49,8 +49,6 @@ const (
 	SessionUpdateConfigOption         = "config_option_update"
 	SessionUpdateSessionInfo          = "session_info_update"
 	SessionUpdateUsage                = "usage_update"
-	SessionUpdateEndTurn              = "end_turn"
-	SessionUpdateError                = "error"
 )
 
 // ContentBlock type discriminators.

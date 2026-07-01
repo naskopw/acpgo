@@ -8,49 +8,197 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func mustMarshalJSON(t *testing.T, v any) json.RawMessage {
+	t.Helper()
+	data, err := json.Marshal(v)
+	require.NoError(t, err)
+	return data
+}
+
+func TestSessionNotificationJSON(t *testing.T) {
+	sn := acp.SessionNotification{
+		SessionID: "sess_abc123",
+		Update: acp.SessionUpdate{
+			SessionUpdateVariant: acp.SessionUpdateAgentMessageChunk,
+			MessageID:            "msg_001",
+			Content:              mustMarshalJSON(t, acp.ContentBlock{Type: "text", Text: "Hello!"}),
+		},
+	}
+	data, err := json.Marshal(sn)
+	require.NoError(t, err)
+
+	var raw map[string]json.RawMessage
+	require.NoError(t, json.Unmarshal(data, &raw))
+	require.Contains(t, raw, "sessionId")
+	require.Contains(t, raw, "update")
+	require.NotContains(t, raw, "sessionUpdate")
+
+	var updateRaw map[string]json.RawMessage
+	require.NoError(t, json.Unmarshal(raw["update"], &updateRaw))
+	require.Contains(t, updateRaw, "sessionUpdate")
+	require.Contains(t, updateRaw, "content")
+}
+
+func TestSessionNotificationUnmarshal(t *testing.T) {
+	input := `{
+		"sessionId": "sess_abc123",
+		"update": {
+			"sessionUpdate": "agent_message_chunk",
+			"messageId": "msg_001",
+			"content": {"type": "text", "text": "Hello!"}
+		}
+	}`
+	var sn acp.SessionNotification
+	require.NoError(t, json.Unmarshal([]byte(input), &sn))
+	require.Equal(t, "sess_abc123", sn.SessionID)
+	require.Equal(t, acp.SessionUpdateAgentMessageChunk, sn.Update.SessionUpdateVariant)
+	require.Equal(t, "msg_001", sn.Update.MessageID)
+
+	cb, err := sn.Update.ContentBlock()
+	require.NoError(t, err)
+	require.NotNil(t, cb)
+	require.Equal(t, "text", cb.Type)
+	require.Equal(t, "Hello!", cb.Text)
+}
+
 func TestSessionUpdateJSON(t *testing.T) {
 	su := acp.SessionUpdate{
 		SessionUpdateVariant: acp.SessionUpdateAgentMessageChunk,
-		SessionID:            "ses-1",
-		Content: &acp.ContentBlock{
-			Type: "text",
-			Text: "Hello!",
-		},
 	}
+	su.SetContentBlock(&acp.ContentBlock{Type: "text", Text: "Hello!"})
 	data, err := json.Marshal(su)
 	require.NoError(t, err)
 	var got acp.SessionUpdate
 	require.NoError(t, json.Unmarshal(data, &got))
 	require.Equal(t, acp.SessionUpdateAgentMessageChunk, got.SessionUpdateVariant)
-	require.NotNil(t, got.Content)
-	require.Equal(t, "Hello!", got.Content.Text)
+
+	cb, err := got.ContentBlock()
+	require.NoError(t, err)
+	require.NotNil(t, cb)
+	require.Equal(t, "Hello!", cb.Text)
 }
 
-func TestSessionUpdateEndTurn(t *testing.T) {
+func TestSessionUpdateToolCallFlat(t *testing.T) {
+	input := `{
+		"sessionUpdate": "tool_call",
+		"toolCallId": "call_001",
+		"title": "Reading configuration file",
+		"kind": "read",
+		"status": "pending"
+	}`
+	var su acp.SessionUpdate
+	require.NoError(t, json.Unmarshal([]byte(input), &su))
+	require.Equal(t, acp.SessionUpdateToolCall, su.SessionUpdateVariant)
+	require.Equal(t, "call_001", su.ToolCallID)
+	require.Equal(t, "Reading configuration file", su.Title)
+	require.Equal(t, "read", su.Kind)
+	require.Equal(t, "pending", su.Status)
+}
+
+func TestSessionUpdatePlanFlat(t *testing.T) {
+	input := `{
+		"sessionUpdate": "plan",
+		"entries": [
+			{"content": "Step 1", "priority": "high", "status": "pending"},
+			{"content": "Step 2", "priority": "low", "status": "completed"}
+		]
+	}`
+	var su acp.SessionUpdate
+	require.NoError(t, json.Unmarshal([]byte(input), &su))
+	require.Equal(t, acp.SessionUpdatePlan, su.SessionUpdateVariant)
+	require.Len(t, su.Entries, 2)
+	require.Equal(t, "Step 1", su.Entries[0].Content)
+}
+
+func TestSessionUpdateUsageFlat(t *testing.T) {
+	input := `{
+		"sessionUpdate": "usage_update",
+		"used": 53000,
+		"size": 200000
+	}`
+	var su acp.SessionUpdate
+	require.NoError(t, json.Unmarshal([]byte(input), &su))
+	require.Equal(t, acp.SessionUpdateUsage, su.SessionUpdateVariant)
+	require.Equal(t, uint64(53000), su.Used)
+	require.Equal(t, uint64(200000), su.Size)
+}
+
+func TestSessionUpdateAvailableCommandsFlat(t *testing.T) {
+	input := `{
+		"sessionUpdate": "available_commands_update",
+		"availableCommands": [
+			{"name": "create_plan", "description": "Create a plan"}
+		]
+	}`
+	var su acp.SessionUpdate
+	require.NoError(t, json.Unmarshal([]byte(input), &su))
+	require.Equal(t, acp.SessionUpdateAvailableCommands, su.SessionUpdateVariant)
+	require.Len(t, su.AvailableCommands, 1)
+	require.Equal(t, "create_plan", su.AvailableCommands[0].Name)
+}
+
+func TestSessionUpdateToolCallContentArray(t *testing.T) {
+	input := `{
+		"sessionUpdate": "tool_call_update",
+		"toolCallId": "call_001",
+		"content": [
+			{"type": "content", "content": {"type": "text", "text": "Done"}}
+		]
+	}`
+	var su acp.SessionUpdate
+	require.NoError(t, json.Unmarshal([]byte(input), &su))
+	require.Equal(t, acp.SessionUpdateToolCallUpdate, su.SessionUpdateVariant)
+
+	tcc, err := su.ToolCallContent()
+	require.NoError(t, err)
+	require.Len(t, tcc, 1)
+	require.Equal(t, "content", tcc[0].Type)
+}
+
+func TestSessionUpdateContentBlockHelper(t *testing.T) {
 	su := acp.SessionUpdate{
-		SessionUpdateVariant: acp.SessionUpdateEndTurn,
-		SessionID:            "ses-1",
-		StopReason:           acp.StopReasonEndTurn,
+		SessionUpdateVariant: acp.SessionUpdateAgentMessageChunk,
+		Content:              mustMarshalJSON(t, acp.ContentBlock{Type: "text", Text: "Hi"}),
 	}
-	data, err := json.Marshal(su)
+	cb, err := su.ContentBlock()
 	require.NoError(t, err)
-	var got acp.SessionUpdate
-	require.NoError(t, json.Unmarshal(data, &got))
-	require.Equal(t, acp.SessionUpdateEndTurn, got.SessionUpdateVariant)
-	require.Equal(t, acp.StopReasonEndTurn, got.StopReason)
+	require.Equal(t, "Hi", cb.Text)
 }
 
-func TestSessionModelChangedJSON(t *testing.T) {
-	smc := acp.SessionModelChanged{
-		SessionID: "ses-1",
-		ModelID:   "gpt-4",
+func TestSessionUpdateToolCallContentHelper(t *testing.T) {
+	su := acp.SessionUpdate{
+		SessionUpdateVariant: acp.SessionUpdateToolCall,
+		Content: mustMarshalJSON(t, []acp.ToolCallContent{
+			{Type: "content", Content: &acp.ContentBlock{Type: "text", Text: "result"}},
+		}),
 	}
-	data, err := json.Marshal(smc)
+	tcc, err := su.ToolCallContent()
 	require.NoError(t, err)
-	var got acp.SessionModelChanged
-	require.NoError(t, json.Unmarshal(data, &got))
-	require.Equal(t, "ses-1", got.SessionID)
-	require.Equal(t, "gpt-4", got.ModelID)
+	require.Len(t, tcc, 1)
+	require.Equal(t, "result", tcc[0].Content.Text)
+}
+
+func TestSessionUpdateSetContentBlock(t *testing.T) {
+	su := acp.SessionUpdate{
+		SessionUpdateVariant: acp.SessionUpdateAgentMessageChunk,
+	}
+	su.SetContentBlock(&acp.ContentBlock{Type: "text", Text: "Hello"})
+	cb, err := su.ContentBlock()
+	require.NoError(t, err)
+	require.Equal(t, "Hello", cb.Text)
+}
+
+func TestSessionUpdateSetToolCallContent(t *testing.T) {
+	su := acp.SessionUpdate{
+		SessionUpdateVariant: acp.SessionUpdateToolCall,
+	}
+	su.SetToolCallContent([]acp.ToolCallContent{
+		{Type: "diff", DiffPath: "/foo.go", DiffNewText: "package main"},
+	})
+	tcc, err := su.ToolCallContent()
+	require.NoError(t, err)
+	require.Len(t, tcc, 1)
+	require.Equal(t, "/foo.go", tcc[0].DiffPath)
 }
 
 func TestPlanEntryJSON(t *testing.T) {
