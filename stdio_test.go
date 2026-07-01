@@ -24,6 +24,10 @@ type mockSubprocess struct {
 	done   chan struct{}
 }
 
+func closeQuietly(c io.Closer) {
+	_ = c.Close()
+}
+
 func newMockTransport(t *testing.T) (*acp.StdioTransport, *mockSubprocess) {
 	t.Helper()
 
@@ -47,8 +51,8 @@ func newMockTransport(t *testing.T) (*acp.StdioTransport, *mockSubprocess) {
 	}
 
 	t.Cleanup(func() {
-		_ = subprocStdinR.Close()
-		_ = subprocStdoutW.Close()
+		closeQuietly(subprocStdinR)
+		closeQuietly(subprocStdoutW)
 	})
 
 	return transport, mock
@@ -127,7 +131,7 @@ func (m *mockSubprocess) runErrorHandler(t *testing.T) {
 func TestStdioCallBasic(t *testing.T) {
 	transport, mock := newMockTransport(t)
 	mock.runEchoHandler(t)
-	defer transport.Close()
+	defer func() { _ = transport.Close() }()
 
 	result, err := transport.Call(context.Background(), "test/method", map[string]string{"key": "value"})
 	require.NoError(t, err)
@@ -141,7 +145,7 @@ func TestStdioCallBasic(t *testing.T) {
 func TestStdioCallErrorResponse(t *testing.T) {
 	transport, mock := newMockTransport(t)
 	mock.runErrorHandler(t)
-	defer transport.Close()
+	defer func() { _ = transport.Close() }()
 
 	result, err := transport.Call(context.Background(), "test/method", nil)
 	require.Error(t, err)
@@ -156,7 +160,7 @@ func TestStdioCallErrorResponse(t *testing.T) {
 func TestStdioNotify(t *testing.T) {
 	transport, mock := newMockTransport(t)
 	mock.runEchoHandler(t)
-	defer transport.Close()
+	defer func() { _ = transport.Close() }()
 
 	err := transport.Notify("test/notification", map[string]string{"msg": "hello"})
 	require.NoError(t, err)
@@ -164,7 +168,7 @@ func TestStdioNotify(t *testing.T) {
 
 func TestStdioNotificationHandler(t *testing.T) {
 	transport, mock := newMockTransport(t)
-	defer transport.Close()
+	defer func() { _ = transport.Close() }()
 
 	received := make(chan struct {
 		method string
@@ -196,7 +200,7 @@ func TestStdioNotificationHandler(t *testing.T) {
 func TestStdioCallContextCancel(t *testing.T) {
 	transport, mock := newMockTransport(t)
 	mock.runEchoHandlerWithDelay(t, 500*time.Millisecond)
-	defer transport.Close()
+	defer func() { _ = transport.Close() }()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
 	defer cancel()
@@ -210,7 +214,7 @@ func TestStdioCallContextCancel(t *testing.T) {
 func TestStdioConcurrentCalls(t *testing.T) {
 	transport, mock := newMockTransport(t)
 	mock.runEchoHandler(t)
-	defer transport.Close()
+	defer func() { _ = transport.Close() }()
 
 	const n = 10
 	var wg sync.WaitGroup
@@ -272,11 +276,11 @@ func (c *closeTrackingReader) Close() error {
 func TestStdioCloseClosesStdout(t *testing.T) {
 	stdinR, stdinW, err := os.Pipe()
 	require.NoError(t, err)
-	defer stdinR.Close()
+	defer func() { _ = stdinR.Close() }()
 
 	stdoutR, stdoutW, err := os.Pipe()
 	require.NoError(t, err)
-	defer stdoutW.Close()
+	defer func() { _ = stdoutW.Close() }()
 
 	trackingReader := &closeTrackingReader{r: stdoutR}
 
@@ -295,7 +299,7 @@ func TestStdioCloseClosesStdout(t *testing.T) {
 
 func TestStdioMalformedJSON(t *testing.T) {
 	transport, mock := newMockTransport(t)
-	defer transport.Close()
+	defer func() { _ = transport.Close() }()
 
 	handlerCalled := make(chan struct{}, 1)
 	transport.SetNotificationHandler(func(method string, params json.RawMessage) {
@@ -318,7 +322,7 @@ func TestStdioMalformedJSON(t *testing.T) {
 func TestStdioResponseForUnknownID(t *testing.T) {
 	transport, mock := newMockTransport(t)
 	mock.runEchoHandler(t)
-	defer transport.Close()
+	defer func() { _ = transport.Close() }()
 
 	orphanResp := `{"jsonrpc":"2.0","id":"99999","result":{}}`
 	_, err := fmt.Fprintln(mock.stdout, orphanResp)
@@ -395,7 +399,7 @@ done
 		"sh", scriptPath,
 	)
 	require.NoError(t, err)
-	defer transport.Close()
+	defer func() { _ = transport.Close() }()
 
 	result, err := transport.Call(context.Background(), "test/method", map[string]string{"hello": "world"})
 	require.NoError(t, err)
@@ -423,7 +427,7 @@ func TestStdioStdioErrorString(t *testing.T) {
 
 func TestStdioCallCancelSendsCancelNotification(t *testing.T) {
 	transport, mock := newMockTransport(t)
-	defer transport.Close()
+	defer func() { _ = transport.Close() }()
 
 	var receivedCancel bool
 	var mu sync.Mutex
@@ -465,7 +469,7 @@ func TestStdioCallCancelSendsCancelNotification(t *testing.T) {
 
 func TestStdioEmptyLine(t *testing.T) {
 	transport, mock := newMockTransport(t)
-	defer transport.Close()
+	defer func() { _ = transport.Close() }()
 
 	handlerCalled := make(chan struct{}, 1)
 	transport.SetNotificationHandler(func(method string, params json.RawMessage) {
@@ -487,7 +491,7 @@ func TestStdioEmptyLine(t *testing.T) {
 
 func TestStdioUnrecognizedMessage(t *testing.T) {
 	transport, mock := newMockTransport(t)
-	defer transport.Close()
+	defer func() { _ = transport.Close() }()
 
 	handlerCalled := make(chan struct{}, 1)
 	transport.SetNotificationHandler(func(method string, params json.RawMessage) {
@@ -510,7 +514,7 @@ func TestStdioUnrecognizedMessage(t *testing.T) {
 func TestStdioLargePayload(t *testing.T) {
 	transport, mock := newMockTransport(t)
 	mock.runEchoHandler(t)
-	defer transport.Close()
+	defer func() { _ = transport.Close() }()
 
 	largeText := strings.Repeat("A", 100*1024)
 	result, err := transport.Call(context.Background(), "test/method", map[string]string{"data": largeText})
