@@ -9,4 +9,6 @@ var (
 	ErrProtocolMismatch = errors.New("protocol version mismatch")
 	// ErrRequestCancelled is returned when a request was cancelled.
 	ErrRequestCancelled = errors.New("request cancelled")
+	// ErrInvalidCWD is returned when a CWD path is set but is not absolute.
+	ErrInvalidCWD = errors.New("cwd must be an absolute path")
 )
