@@ -1,11 +1,6 @@
-BINARY=acp
+.PHONY: all test lint clean
 
-.PHONY: all build test lint clean
-
-all: lint test build
-
-build:
-	go build -o $(BINARY) .
+all: lint test
 
 test:
 	go test -v -race -count=1 ./...
@@ -14,4 +9,4 @@ lint:
 	golangci-lint run
 
 clean:
-	rm -f $(BINARY)
+	go clean -testcache
