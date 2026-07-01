@@ -1,4 +1,4 @@
-// Package acp implements the Agent Communication Protocol (ACP) for Go.
+// Package acp implements the Agent Client Protocol (ACP) for Go.
 //
 // It provides shared protocol types and a stdio transport for implementing
 // ACP clients and ACP servers, including session management, tool definitions,
