@@ -104,13 +104,7 @@ const (
 	PermOutcomeSelected  = "selected"
 )
 
-// SelectedPermissionOutcomeOption values.
-const (
-	PermSelectedOnce        = "once"
-	PermSelectedAlways      = "always"
-	PermSelectedReject      = "reject"
-	PermSelectedRejectAlways = "reject_always"
-)
+
 
 // ConfigOptionCategory values.
 const (

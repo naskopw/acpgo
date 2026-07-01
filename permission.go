@@ -16,14 +16,7 @@ type RequestPermissionResponse struct {
 
 // PermissionOutcome is the user's decision on a permission request.
 type PermissionOutcome struct {
-	Outcome string                `json:"outcome"`
-	Option  *SelectedPermission   `json:"option,omitempty"`
-	Meta    map[string]any        `json:"_meta,omitempty"`
-}
-
-// SelectedPermission describes the user's selected permission option.
-type SelectedPermission struct {
-	OptionID string         `json:"optionId"`
-	Reply    string         `json:"reply"`
+	Outcome  string         `json:"outcome"`
+	OptionID string         `json:"optionId,omitempty"`
 	Meta     map[string]any `json:"_meta,omitempty"`
 }
