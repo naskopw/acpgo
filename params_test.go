@@ -44,50 +44,6 @@ func TestInitializeResponseJSON(t *testing.T) {
 	require.True(t, got.AgentCapabilities.LoadSession)
 }
 
-func TestSetModelParamsJSON(t *testing.T) {
-	p := acp.SetModelParams{ModelID: "gpt-4"}
-	data, err := json.Marshal(p)
-	require.NoError(t, err)
-	var got acp.SetModelParams
-	require.NoError(t, json.Unmarshal(data, &got))
-	require.Equal(t, "gpt-4", got.ModelID)
-}
-
-func TestNewSessionParamsJSON(t *testing.T) {
-	p := acp.NewSessionParams{
-		CWD: "/home",
-		MCPServers: []acp.MCPServer{
-			{Name: "fs", Command: "npx", Args: []string{"-y", "@modelcontextprotocol/server-filesystem"}, Env: []acp.EnvVariable{{Name: "PATH", Value: "/usr/bin"}}},
-		},
-	}
-	data, err := json.Marshal(p)
-	require.NoError(t, err)
-	var got acp.NewSessionParams
-	require.NoError(t, json.Unmarshal(data, &got))
-	require.Equal(t, "/home", got.CWD)
-	require.Len(t, got.MCPServers, 1)
-	require.Equal(t, "fs", got.MCPServers[0].Name)
-}
-
-func TestSessionIDParamsJSON(t *testing.T) {
-	p := acp.SessionIDParams{SessionID: "ses-1"}
-	data, err := json.Marshal(p)
-	require.NoError(t, err)
-	var got acp.SessionIDParams
-	require.NoError(t, json.Unmarshal(data, &got))
-	require.Equal(t, "ses-1", got.SessionID)
-}
-
-func TestCancelParamsJSON(t *testing.T) {
-	p := acp.CancelParams{SessionID: "ses-1", MessageID: "msg-1"}
-	data, err := json.Marshal(p)
-	require.NoError(t, err)
-	var got acp.CancelParams
-	require.NoError(t, json.Unmarshal(data, &got))
-	require.Equal(t, "ses-1", got.SessionID)
-	require.Equal(t, "msg-1", got.MessageID)
-}
-
 func TestNewSessionRequestJSON(t *testing.T) {
 	p := acp.NewSessionRequest{
 		CWD: "/home",
@@ -178,11 +134,4 @@ func TestAvailableCommandWithInputJSON(t *testing.T) {
 	require.Equal(t, "What should I think about?", got.Input.Unstructured.Hint)
 }
 
-func TestExtRequestJSON(t *testing.T) {
-	p := acp.ExtRequest{Method: "custom/do_thing", Params: json.RawMessage(`{"key":"val"}`)}
-	data, err := json.Marshal(p)
-	require.NoError(t, err)
-	var got acp.ExtRequest
-	require.NoError(t, json.Unmarshal(data, &got))
-	require.Equal(t, "custom/do_thing", got.Method)
-}
+

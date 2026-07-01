@@ -1,7 +1,5 @@
 package acp
 
-import "encoding/json"
-
 // ---- Client → Agent Requests ----
 
 // InitializeRequest starts the handshake.
@@ -126,14 +124,6 @@ type CloseSessionResponse struct {
 	Meta map[string]any `json:"_meta,omitempty"`
 }
 
-// PromptRequest contains parameters for a prompt request.
-type PromptRequest struct {
-	RequestID string  `json:"requestId"`
-	SessionID string  `json:"sessionId"`
-	Prompt    string  `json:"prompt"`
-	ModelID   *string `json:"modelId,omitempty"`
-}
-
 // ContentPromptRequest is the ACP-standard session/prompt request with content blocks.
 type ContentPromptRequest struct {
 	SessionID string         `json:"sessionId"`
@@ -254,38 +244,6 @@ type EnvVariable struct {
 	Value string `json:"value"`
 }
 
-// Harness interface parameter types (simplified for the Go harness interface).
-
-// NewSessionParams contains harness-level session creation parameters.
-type NewSessionParams struct {
-	CWD        string      `json:"cwd"`
-	MCPServers []MCPServer `json:"mcpServers,omitempty"`
-}
-
-// CancelParams identifies a session (and optionally message) to cancel.
-type CancelParams struct {
-	SessionID string `json:"sessionId"`
-	MessageID string `json:"messageId,omitempty"`
-}
-
-// SetModelParams contains the model ID to set.
-type SetModelParams struct {
-	ModelID string `json:"modelId"`
-}
-
-// InitializeResult is the result of an initialize handshake.
-type InitializeResult struct {
-	ProtocolVersion   int                `json:"protocolVersion"`
-	AgentCapabilities *AgentCapabilities `json:"agentCapabilities,omitempty"`
-	AgentName         string             `json:"agentName,omitempty"`
-	AgentVersion      string             `json:"agentVersion,omitempty"`
-}
-
-// SessionIDParams identifies a session by ID.
-type SessionIDParams struct {
-	SessionID string `json:"sessionId"`
-}
-
 // SessionInfo describes a session in list results.
 type SessionInfo struct {
 	SessionID            string            `json:"sessionId"`
@@ -315,27 +273,6 @@ type AvailableCommandInput struct {
 type UnstructuredCommandInput struct {
 	Hint string         `json:"hint,omitempty"`
 	Meta map[string]any `json:"_meta,omitempty"`
-}
-
-// ExtRequest is a generic extension method request.
-type ExtRequest struct {
-	Method string          `json:"method"`
-	Params json.RawMessage `json:"params,omitempty"`
-	Meta   map[string]any  `json:"_meta,omitempty"`
-}
-
-// ExtResponse is a generic extension method response.
-type ExtResponse struct {
-	Result json.RawMessage `json:"result,omitempty"`
-	Error  *RPCError       `json:"error,omitempty"`
-	Meta   map[string]any  `json:"_meta,omitempty"`
-}
-
-// ExtNotification is a generic extension method notification.
-type ExtNotification struct {
-	Method string          `json:"method"`
-	Params json.RawMessage `json:"params,omitempty"`
-	Meta   map[string]any  `json:"_meta,omitempty"`
 }
 
 // SessionModeState describes the available and current session modes.
