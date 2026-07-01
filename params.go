@@ -288,12 +288,13 @@ type SessionIDParams struct {
 
 // SessionInfo describes a session in list results.
 type SessionInfo struct {
-	SessionID            string         `json:"sessionId"`
-	CWD                  string         `json:"cwd"`
-	AdditionalDirectories []string       `json:"additionalDirectories,omitempty"`
-	Title                string         `json:"title,omitempty"`
-	UpdatedAt            string         `json:"updatedAt,omitempty"`
-	Meta                 map[string]any `json:"_meta,omitempty"`
+	SessionID            string            `json:"sessionId"`
+	CWD                  string            `json:"cwd"`
+	AdditionalDirectories []string          `json:"additionalDirectories,omitempty"`
+	Title                string            `json:"title,omitempty"`
+	UpdatedAt            string            `json:"updatedAt,omitempty"`
+	ConfigOptions        []ConfigOption    `json:"configOptions,omitempty"`
+	Meta                 map[string]any    `json:"_meta,omitempty"`
 }
 
 // SlashCommand describes a registered slash command.
