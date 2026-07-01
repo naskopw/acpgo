@@ -146,8 +146,22 @@ func TestLogoutResponseJSON(t *testing.T) {
 	require.NoError(t, json.Unmarshal(data, &got))
 }
 
-func TestSlashCommandWithInputJSON(t *testing.T) {
-	p := acp.SlashCommand{
+func TestAvailableCommandJSON(t *testing.T) {
+	cmd := acp.AvailableCommand{
+		Name:        "create_plan",
+		Description: "Create an execution plan",
+	}
+	data, err := json.Marshal(cmd)
+	require.NoError(t, err)
+
+	var got acp.AvailableCommand
+	require.NoError(t, json.Unmarshal(data, &got))
+	require.Equal(t, "create_plan", got.Name)
+	require.Equal(t, "Create an execution plan", got.Description)
+}
+
+func TestAvailableCommandWithInputJSON(t *testing.T) {
+	p := acp.AvailableCommand{
 		Name:        "think",
 		Description: "Think about a problem",
 		Input: &acp.AvailableCommandInput{
@@ -156,7 +170,7 @@ func TestSlashCommandWithInputJSON(t *testing.T) {
 	}
 	data, err := json.Marshal(p)
 	require.NoError(t, err)
-	var got acp.SlashCommand
+	var got acp.AvailableCommand
 	require.NoError(t, json.Unmarshal(data, &got))
 	require.Equal(t, "think", got.Name)
 	require.NotNil(t, got.Input)

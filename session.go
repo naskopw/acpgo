@@ -28,7 +28,7 @@ type SessionUpdate struct {
 	RawInput             any                `json:"rawInput,omitempty"`
 	RawOutput            any                `json:"rawOutput,omitempty"`
 	Entries              []PlanEntry        `json:"entries,omitempty"`
-	AvailableCommands    []SlashCommand     `json:"availableCommands,omitempty"`
+	AvailableCommands    []AvailableCommand `json:"availableCommands,omitempty"`
 	CurrentModeID        string             `json:"currentModeId,omitempty"`
 	ConfigOptions        []ConfigOption     `json:"configOptions,omitempty"`
 	UpdatedAt            string             `json:"updatedAt,omitempty"`

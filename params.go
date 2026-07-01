@@ -297,10 +297,10 @@ type SessionInfo struct {
 	Meta                 map[string]any    `json:"_meta,omitempty"`
 }
 
-// SlashCommand describes a registered slash command.
-type SlashCommand struct {
+// AvailableCommand describes a command the agent can execute.
+type AvailableCommand struct {
 	Name        string                 `json:"name"`
-	Description string                 `json:"description,omitempty"`
+	Description string                 `json:"description"`
 	Input       *AvailableCommandInput `json:"input,omitempty"`
 	Meta        map[string]any         `json:"_meta,omitempty"`
 }
