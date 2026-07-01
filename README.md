@@ -1,10 +1,10 @@
-# acp — Agent Client Protocol for Go
+# acpgo — Agent Client Protocol for Go
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/naskopw/acp.svg)](https://pkg.go.dev/github.com/naskopw/acp)
-[![Go Version](https://img.shields.io/github/go-mod/go-version/naskopw/acp)](go.mod)
+[![Go Reference](https://pkg.go.dev/badge/github.com/naskopw/acpgo.svg)](https://pkg.go.dev/github.com/naskopw/acpgo)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/naskopw/acpgo)](go.mod)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 
-**acp** is a Go implementation of the [Agent Client Protocol (ACP)](https://agentclientprotocol.com/) — an open standard for communication between code editors and AI coding agents.
+**acpgo** is a Go implementation of the [Agent Client Protocol (ACP)](https://agentclientprotocol.com/) — an open standard for communication between code editors and AI coding agents.
 
 ## What is ACP?
 
@@ -24,7 +24,7 @@ This library is harness-agnostic by design. For the harness server implementatio
 | **JSON-RPC Envelopes** | `Request`, `Response`, `Notification`, `RPCError` |
 | **Protocol Methods** | All client→agent and agent→client methods as typed constants |
 | **Session Management** | Create, load, list, resume, close, delete sessions |
-| **Streaming** | `SessionUpdate` discriminated union with text, thought, tool_use, done, error chunks |
+| **Streaming** | `SessionUpdate` discriminated union with message chunks, tool calls, plans, usage, mode/config updates |
 | **Tool Calling** | `ToolCall`, `ToolCallUpdate`, tool content types, locations |
 | **Content Types** | Text, image, audio, resource links, embedded resources, diffs |
 | **File Operations** | Read/write text file requests and responses |
@@ -33,12 +33,12 @@ This library is harness-agnostic by design. For the harness server implementatio
 | **Capability Negotiation** | Client and agent capability types for `initialize` handshake |
 | **Configuration** | Config option types for mode, model, and other settings |
 | **Authentication** | Auth method types and logout support |
-| **Stdio Transport** | JSON-RPC over subprocess stdin/stdout with concurrent request tracking |
+| **Stdio Transport** | JSON-RPC over subprocess stdin/stdout with concurrent request tracking and context-based cancellation |
 
 ## Installation
 
 ```bash
-go get github.com/naskopw/acp
+go get github.com/naskopw/acpgo
 ```
 
 ## Usage
@@ -50,8 +50,11 @@ package main
 
 import (
     "context"
+    "encoding/json"
+    "log"
     "log/slog"
-    "github.com/naskopw/acp"
+
+    "github.com/naskopw/acpgo"
 )
 
 func main() {
@@ -63,14 +66,21 @@ func main() {
     if err != nil {
         log.Fatal(err)
     }
-    defer transport.Close()
+    defer func() { _ = transport.Close() }()
 
     // Register handler for streaming updates
     transport.SetNotificationHandler(func(method string, params json.RawMessage) {
         if method == acp.NotificationSessionUpdate {
-            var update acp.SessionUpdate
-            json.Unmarshal(params, &update)
-            // handle chunk based on update.SessionUpdateVariant
+            var sn acp.SessionNotification
+            json.Unmarshal(params, &sn)
+            // handle update based on sn.Update.SessionUpdateVariant
+            switch sn.Update.SessionUpdateVariant {
+            case acp.SessionUpdateAgentMessageChunk:
+                cb, _ := sn.Update.ContentBlock()
+                if cb != nil {
+                    log.Printf("agent: %s", cb.Text)
+                }
+            }
         }
     })
 
@@ -79,20 +89,31 @@ func main() {
         ProtocolVersion: 1,
         ClientInfo:      &acp.Implementation{Name: "my-client", Version: "1.0.0"},
     })
+    if err != nil {
+        log.Fatal(err)
+    }
+    _ = initResp
 
     // Create a session
     sessionResp, err := transport.Call(ctx, acp.MethodNewSession, acp.NewSessionRequest{
-        CWD: "/path/to/project",
+        CWD:        "/path/to/project",
+        MCPServers: []acp.MCPServer{},
     })
+    if err != nil {
+        log.Fatal(err)
+    }
 
     var session acp.NewSessionResponse
-    json.Unmarshal(initResp, &session)
+    json.Unmarshal(sessionResp, &session)
 
     // Send a prompt
-    transport.Notify(acp.MethodPrompt, acp.PromptRequest{
+    _, err = transport.Call(ctx, acp.MethodPrompt, acp.ContentPromptRequest{
         SessionID: session.SessionID,
-        Prompt:    "Add error handling to the HTTP handler",
+        Prompt:    []acp.ContentBlock{{Type: "text", Text: "Add error handling to the HTTP handler"}},
     })
+    if err != nil {
+        log.Fatal(err)
+    }
 }
 ```
 
