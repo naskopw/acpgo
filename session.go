@@ -46,12 +46,12 @@ type SessionInfoUpdate struct {
 	Meta      map[string]any `json:"_meta,omitempty"`
 }
 
-// UsageUpdate contains token usage information.
+// UsageUpdate contains context window and cumulative cost information.
 type UsageUpdate struct {
-	TokensIn  int64          `json:"tokensIn,omitempty"`
-	TokensOut int64          `json:"tokensOut,omitempty"`
-	Cost      *Cost          `json:"cost,omitempty"`
-	Meta      map[string]any `json:"_meta,omitempty"`
+	Used uint64         `json:"used"`
+	Size uint64         `json:"size"`
+	Cost *Cost          `json:"cost,omitempty"`
+	Meta map[string]any `json:"_meta,omitempty"`
 }
 
 // Cost represents monetary cost of a turn.

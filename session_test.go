@@ -81,6 +81,34 @@ func TestPlanEntryOmitsNonSpecFields(t *testing.T) {
 	require.NotContains(t, string(data), `"id"`)
 }
 
+func TestUsageUpdateJSON(t *testing.T) {
+	uu := acp.UsageUpdate{
+		Used: 53000,
+		Size: 200000,
+		Cost: &acp.Cost{Amount: 0.045, Currency: "USD"},
+	}
+	data, err := json.Marshal(uu)
+	require.NoError(t, err)
+
+	expected := `{"used":53000,"size":200000,"cost":{"amount":0.045,"currency":"USD"}}`
+	require.JSONEq(t, expected, string(data))
+
+	var got acp.UsageUpdate
+	require.NoError(t, json.Unmarshal(data, &got))
+	require.Equal(t, uint64(53000), got.Used)
+	require.Equal(t, uint64(200000), got.Size)
+	require.NotNil(t, got.Cost)
+	require.Equal(t, 0.045, got.Cost.Amount)
+}
+
+func TestUsageUpdateOmitsNonSpecFields(t *testing.T) {
+	uu := acp.UsageUpdate{Used: 100, Size: 200}
+	data, err := json.Marshal(uu)
+	require.NoError(t, err)
+	require.NotContains(t, string(data), `"tokensIn"`)
+	require.NotContains(t, string(data), `"tokensOut"`)
+}
+
 func TestConfigOptionJSON(t *testing.T) {
 	co := acp.ConfigOption{
 		ID:           "model",
