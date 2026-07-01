@@ -69,12 +69,10 @@ type Plan struct {
 
 // PlanEntry is a single step in an execution plan.
 type PlanEntry struct {
-	ID          string         `json:"id"`
-	Title       string         `json:"title"`
-	Description string         `json:"description,omitempty"`
-	Priority    string         `json:"priority,omitempty"`
-	Status      string         `json:"status,omitempty"`
-	Meta        map[string]any `json:"_meta,omitempty"`
+	Content  string         `json:"content"`
+	Priority string         `json:"priority"`
+	Status   string         `json:"status"`
+	Meta     map[string]any `json:"_meta,omitempty"`
 }
 
 // SessionModelChanged is a notification that the model changed externally.

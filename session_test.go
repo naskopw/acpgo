@@ -53,6 +53,34 @@ func TestSessionModelChangedJSON(t *testing.T) {
 	require.Equal(t, "gpt-4", got.ModelID)
 }
 
+func TestPlanEntryJSON(t *testing.T) {
+	entry := acp.PlanEntry{
+		Content:  "Analyze the existing codebase structure",
+		Priority: acp.PlanPriorityHigh,
+		Status:   acp.PlanStatusPending,
+	}
+	data, err := json.Marshal(entry)
+	require.NoError(t, err)
+
+	expected := `{"content":"Analyze the existing codebase structure","priority":"high","status":"pending"}`
+	require.JSONEq(t, expected, string(data))
+
+	var got acp.PlanEntry
+	require.NoError(t, json.Unmarshal(data, &got))
+	require.Equal(t, "Analyze the existing codebase structure", got.Content)
+	require.Equal(t, acp.PlanPriorityHigh, got.Priority)
+	require.Equal(t, acp.PlanStatusPending, got.Status)
+}
+
+func TestPlanEntryOmitsNonSpecFields(t *testing.T) {
+	entry := acp.PlanEntry{Content: "test", Priority: "high", Status: "pending"}
+	data, err := json.Marshal(entry)
+	require.NoError(t, err)
+	require.NotContains(t, string(data), `"title"`)
+	require.NotContains(t, string(data), `"description"`)
+	require.NotContains(t, string(data), `"id"`)
+}
+
 func TestConfigOptionJSON(t *testing.T) {
 	co := acp.ConfigOption{
 		ID:           "model",
