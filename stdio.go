@@ -70,7 +70,7 @@ func NewStdioTransport(ctx context.Context, logger *slog.Logger, binary string, 
 	}
 
 	t := &StdioTransport{
-		logger:  logger,
+		logger:  logger.With("component", "acpgo"),
 		cancel:  cancel,
 		cmd:     cmd,
 		stdin:   stdin,
@@ -87,7 +87,7 @@ func NewStdioTransport(ctx context.Context, logger *slog.Logger, binary string, 
 func NewStdioTransportWithIO(ctx context.Context, logger *slog.Logger, stdin io.WriteCloser, stdout io.Reader) *StdioTransport {
 	_, cancel := context.WithCancel(ctx)
 	t := &StdioTransport{
-		logger:  logger,
+		logger:  logger.With("component", "acpgo"),
 		cancel:  cancel,
 		stdin:   stdin,
 		stdout:  stdout,
@@ -130,6 +130,8 @@ func (t *StdioTransport) Call(ctx context.Context, method string, params interfa
 		t.pendingMu.Unlock()
 	}()
 
+	t.logger.Debug("stdio call", "method", method, "id", id)
+
 	t.writeMu.Lock()
 	_, err = fmt.Fprintln(t.stdin, string(data))
 	t.writeMu.Unlock()
@@ -139,6 +141,7 @@ func (t *StdioTransport) Call(ctx context.Context, method string, params interfa
 
 	select {
 	case resp := <-ch:
+		t.logger.Debug("stdio response", "method", method, "id", id, "hasError", resp.Error != nil)
 		if resp.Error != nil {
 			return nil, &StdioError{
 				Code:    resp.Error.Code,
@@ -148,6 +151,7 @@ func (t *StdioTransport) Call(ctx context.Context, method string, params interfa
 		}
 		return resp.Result, nil
 	case <-ctx.Done():
+		t.logger.Debug("stdio call cancelled", "method", method, "id", id)
 		_ = t.Notify(NotificationCancelRequest, CancelRequestNotification{RequestID: id})
 		return nil, ctx.Err()
 	}
@@ -170,6 +174,8 @@ func (t *StdioTransport) Notify(method string, params interface{}) error {
 	if err != nil {
 		return fmt.Errorf("marshal notification: %w", err)
 	}
+
+	t.logger.Debug("stdio notify", "method", method)
 
 	t.writeMu.Lock()
 	_, err = fmt.Fprintln(t.stdin, string(data))
@@ -254,12 +260,15 @@ func (t *StdioTransport) readLoop() {
 			t.pendingMu.Unlock()
 
 			if ok {
+				t.logger.Debug("stdio response received", "id", key, "hasError", resp.Error != nil)
 				ch <- resp
 			} else {
 				t.logger.Warn("response for unknown request ID", "id", key)
 			}
 
 		case raw.Method != "":
+			t.logger.Debug("stdio notification received", "method", raw.Method)
+
 			var notif struct {
 				Params json.RawMessage `json:"params"`
 			}
