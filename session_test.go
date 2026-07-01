@@ -276,3 +276,77 @@ func TestConfigOptionJSON(t *testing.T) {
 	require.Equal(t, "gpt-4", got.CurrentValue)
 	require.Len(t, got.Options, 2)
 }
+
+func TestContentBlockNilContent(t *testing.T) {
+	su := acp.SessionUpdate{
+		SessionUpdateVariant: acp.SessionUpdateAgentMessageChunk,
+	}
+	cb, err := su.ContentBlock()
+	require.NoError(t, err)
+	require.Nil(t, cb)
+}
+
+func TestContentBlockEmptyContent(t *testing.T) {
+	su := acp.SessionUpdate{
+		SessionUpdateVariant: acp.SessionUpdateAgentMessageChunk,
+		Content:              json.RawMessage{},
+	}
+	cb, err := su.ContentBlock()
+	require.NoError(t, err)
+	require.Nil(t, cb)
+}
+
+func TestContentBlockInvalidJSON(t *testing.T) {
+	su := acp.SessionUpdate{
+		SessionUpdateVariant: acp.SessionUpdateAgentMessageChunk,
+		Content:              json.RawMessage(`{invalid`),
+	}
+	_, err := su.ContentBlock()
+	require.Error(t, err)
+}
+
+func TestToolCallContentNilContent(t *testing.T) {
+	su := acp.SessionUpdate{
+		SessionUpdateVariant: acp.SessionUpdateToolCall,
+	}
+	tcc, err := su.ToolCallContent()
+	require.NoError(t, err)
+	require.Nil(t, tcc)
+}
+
+func TestToolCallContentEmptyContent(t *testing.T) {
+	su := acp.SessionUpdate{
+		SessionUpdateVariant: acp.SessionUpdateToolCall,
+		Content:              json.RawMessage{},
+	}
+	tcc, err := su.ToolCallContent()
+	require.NoError(t, err)
+	require.Nil(t, tcc)
+}
+
+func TestToolCallContentInvalidJSON(t *testing.T) {
+	su := acp.SessionUpdate{
+		SessionUpdateVariant: acp.SessionUpdateToolCall,
+		Content:              json.RawMessage(`[invalid`),
+	}
+	_, err := su.ToolCallContent()
+	require.Error(t, err)
+}
+
+func TestSetContentBlockNil(t *testing.T) {
+	su := acp.SessionUpdate{
+		SessionUpdateVariant: acp.SessionUpdateAgentMessageChunk,
+		Content:              mustMarshalJSON(t, acp.ContentBlock{Type: "text", Text: "old"}),
+	}
+	su.SetContentBlock(nil)
+	require.Nil(t, su.Content)
+}
+
+func TestSetToolCallContentNil(t *testing.T) {
+	su := acp.SessionUpdate{
+		SessionUpdateVariant: acp.SessionUpdateToolCall,
+		Content:              mustMarshalJSON(t, []acp.ToolCallContent{{Type: "content"}}),
+	}
+	su.SetToolCallContent(nil)
+	require.Nil(t, su.Content)
+}

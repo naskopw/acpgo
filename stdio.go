@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -147,6 +148,7 @@ func (t *StdioTransport) Call(ctx context.Context, method string, params interfa
 		}
 		return resp.Result, nil
 	case <-ctx.Done():
+		_ = t.Notify(NotificationCancelRequest, CancelRequestNotification{RequestID: id})
 		return nil, ctx.Err()
 	}
 }
@@ -179,16 +181,34 @@ func (t *StdioTransport) Notify(method string, params interface{}) error {
 	return nil
 }
 
-// Close shuts down the transport, killing the subprocess.
+// Close shuts down the transport, killing the subprocess and unblocking readLoop.
 func (t *StdioTransport) Close() error {
 	t.cancel()
-	err := t.stdin.Close()
+
+	var errs []error
+
+	if err := t.stdin.Close(); err != nil {
+		errs = append(errs, fmt.Errorf("close stdin: %w", err))
+	}
+
 	if t.cmd != nil {
 		if waitErr := t.cmd.Wait(); waitErr != nil {
-			t.logger.Debug("subprocess exited", "error", waitErr)
+			var exitErr *exec.ExitError
+			if errors.As(waitErr, &exitErr) && !exitErr.Exited() {
+				// Process was killed by signal (likely our context cancellation) — expected
+			} else {
+				errs = append(errs, fmt.Errorf("subprocess wait: %w", waitErr))
+			}
+		}
+	} else {
+		if rc, ok := t.stdout.(io.Closer); ok {
+			if err := rc.Close(); err != nil {
+				t.logger.Debug("close stdout", "error", err)
+			}
 		}
 	}
-	return err
+
+	return errors.Join(errs...)
 }
 
 // SetNotificationHandler registers a handler for incoming notifications.
