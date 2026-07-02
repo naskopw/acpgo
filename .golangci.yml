@@ -1,8 +1,6 @@
 version: "2"
 run:
   timeout: 3m
-  exclude-dirs:
-    - .git
 linters:
   enable:
     - errcheck
