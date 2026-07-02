@@ -32,3 +32,7 @@ type RPCError struct {
 	Data    json.RawMessage  `json:"data,omitempty"`
 }
 
+func (e *RPCError) Error() string {
+	return e.Message
+}
+

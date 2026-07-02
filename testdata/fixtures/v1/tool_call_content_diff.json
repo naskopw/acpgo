@@ -1,0 +1,5 @@
+{
+  "type": "diff",
+  "path": "/foo.txt",
+  "newText": "new content"
+}

@@ -1,0 +1,8 @@
+{
+  "sessionId": "s1",
+  "update": {
+    "sessionUpdate": "tool_call",
+    "toolCallId": "tc1",
+    "title": "list"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "sessionUpdate": "tool_call",
+  "toolCallId": "tc1",
+  "title": "list",
+  "kind": "read",
+  "status": "completed"
+}

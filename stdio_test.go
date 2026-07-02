@@ -252,7 +252,7 @@ func TestStdioCloseUnblocksReadLoop(t *testing.T) {
 }
 
 type closeTrackingReader struct {
-	r       io.Reader
+	r       io.ReadCloser
 	closed  bool
 	mu      sync.Mutex
 }
@@ -269,8 +269,11 @@ func (c *closeTrackingReader) Read(p []byte) (int, error) {
 func (c *closeTrackingReader) Close() error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+	if c.closed {
+		return nil
+	}
 	c.closed = true
-	return nil
+	return c.r.Close()
 }
 
 func TestStdioCloseClosesStdout(t *testing.T) {
@@ -518,6 +521,109 @@ func TestStdioLargePayload(t *testing.T) {
 
 	largeText := strings.Repeat("A", 100*1024)
 	result, err := transport.Call(context.Background(), "test/method", map[string]string{"data": largeText})
+	require.NoError(t, err)
+	require.NotNil(t, result)
+}
+
+func TestStdioCallWithNilParams(t *testing.T) {
+	transport, mock := newMockTransport(t)
+	mock.runEchoHandler(t)
+	defer func() { _ = transport.Close() }()
+
+	result, err := transport.Call(context.Background(), "test/method", nil)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+}
+
+func TestStdioNotifyWithNilParams(t *testing.T) {
+	transport, mock := newMockTransport(t)
+	mock.runEchoHandler(t)
+	defer func() { _ = transport.Close() }()
+
+	err := transport.Notify("test/notify", nil)
+	require.NoError(t, err)
+}
+
+func TestStdioSubprocessCrashes(t *testing.T) {
+	transport, mock := newMockTransport(t)
+	mock.runEchoHandler(t)
+
+	// Simulate subprocess crash by closing the write end of stdout
+	if closer, ok := mock.stdout.(io.Closer); ok {
+		require.NoError(t, closer.Close())
+	} else {
+		t.Skip("stdout is not closable")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	defer cancel()
+
+	_, err := transport.Call(ctx, "test/method", nil)
+	require.Error(t, err)
+
+	_ = transport.Close()
+}
+
+func TestStdioConcurrentCloseAndCall(t *testing.T) {
+	transport, mock := newMockTransport(t)
+	mock.runEchoHandlerWithDelay(t, 100*time.Millisecond)
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+	defer cancel()
+
+	go func() {
+		defer wg.Done()
+		time.Sleep(5 * time.Millisecond)
+		_ = transport.Close()
+	}()
+
+	go func() {
+		defer wg.Done()
+		_, _ = transport.Call(ctx, "test/method", nil)
+	}()
+
+	wg.Wait()
+}
+
+func TestStdioNotificationHandlerSetToNil(t *testing.T) {
+	transport, mock := newMockTransport(t)
+	defer func() { _ = transport.Close() }()
+
+	transport.SetNotificationHandler(func(method string, params json.RawMessage) {})
+	transport.SetNotificationHandler(nil)
+
+	_, err := fmt.Fprintln(mock.stdout, `{"jsonrpc":"2.0","method":"test/notif","params":{}}`)
+	require.NoError(t, err)
+}
+
+func TestStdioResponseWithWrongIDType(t *testing.T) {
+	transport, mock := newMockTransport(t)
+	defer func() { _ = transport.Close() }()
+
+	// Some implementations might use string IDs vs number IDs
+	go func() {
+		scanner := bufio.NewScanner(mock.stdin)
+		scanner.Buffer(make([]byte, 0, 64*1024), 1024*1024)
+		for scanner.Scan() {
+			line := scanner.Bytes()
+			var raw struct {
+				ID json.RawMessage `json:"id"`
+			}
+			if err := json.Unmarshal(line, &raw); err != nil {
+				continue
+			}
+			if len(raw.ID) > 0 {
+				// Respond with a different ID type (number instead of string, string instead of number)
+				resp := fmt.Sprintf(`{"jsonrpc":"2.0","id":%s,"result":{}}`, string(raw.ID))
+				_, _ = fmt.Fprintln(mock.stdout, resp)
+			}
+		}
+	}()
+
+	result, err := transport.Call(context.Background(), "test/method", nil)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 }

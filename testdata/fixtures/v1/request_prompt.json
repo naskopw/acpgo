@@ -1,0 +1,9 @@
+{
+  "sessionId": "s1",
+  "prompt": [
+    {
+      "type": "text",
+      "text": "hello"
+    }
+  ]
+}

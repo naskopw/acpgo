@@ -1,0 +1,13 @@
+{
+  "sessionId": "s1",
+  "toolCall": {
+    "toolCallId": "tc1"
+  },
+  "options": [
+    {
+      "optionId": "opt1",
+      "name": "Allow",
+      "kind": "allow_once"
+    }
+  ]
+}

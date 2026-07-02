@@ -1,0 +1,18 @@
+{
+  "cwd": "/home",
+  "mcpServers": [
+    {
+      "name": "fs",
+      "command": "/bin/ls",
+      "args": [
+        "-la"
+      ],
+      "env": [
+        {
+          "name": "PATH",
+          "value": "/usr/bin"
+        }
+      ]
+    }
+  ]
+}
