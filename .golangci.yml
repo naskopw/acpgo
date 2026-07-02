@@ -1,6 +1,8 @@
 version: "2"
 run:
   timeout: 3m
+  exclude-dirs:
+    - .git
 linters:
   enable:
     - errcheck
@@ -17,6 +19,3 @@ linters:
       rules:
         - name: exported
           severity: warning
-issues:
-  exclude-dirs:
-    - .git
